@@ -17,7 +17,6 @@
 package net.fabricmc.loader.impl;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,6 +40,7 @@ import org.objectweb.asm.Opcodes;
 import net.fabricmc.accesswidener.AccessWidener;
 import net.fabricmc.accesswidener.AccessWidenerReader;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.ModContainer;
@@ -69,8 +69,7 @@ import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
-@SuppressWarnings("deprecation")
-public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
+public final class FabricLoaderImpl implements FabricLoader {
 	public static final FabricLoaderImpl INSTANCE = InitHelper.get();
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
@@ -138,11 +137,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	@Override
-	public Object getGameInstance() {
-		return gameInstance;
-	}
-
-	@Override
 	public EnvType getEnvironmentType() {
 		return FabricLauncherBase.getLauncher().getEnvironmentType();
 	}
@@ -155,12 +149,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		if (gameDir == null) throw new IllegalStateException("invoked too early?");
 
 		return gameDir;
-	}
-
-	@Override
-	@Deprecated
-	public File getGameDirectory() {
-		return getGameDir().toFile();
 	}
 
 	/**
@@ -177,12 +165,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 
 		return configDir;
-	}
-
-	@Override
-	@Deprecated
-	public File getConfigDirectory() {
-		return getConfigDir().toFile();
 	}
 
 	public void load() {
@@ -479,7 +461,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		for (ModContainerImpl mod : mods) {
 			// add language adapters
-			for (Map.Entry<String, String> laEntry : mod.getInfo().getLanguageAdapterDefinitions().entrySet()) {
+			for (Map.Entry<String, String> laEntry : mod.getMetadata().getLanguageAdapterDefinitions().entrySet()) {
 				if (adapterMap.containsKey(laEntry.getKey())) {
 					throw new RuntimeException("Duplicate language adapter key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", " + adapterMap.get(laEntry.getKey()).getClass().getName() + ")");
 				}
@@ -496,18 +478,13 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private void setupMods() {
 		for (ModContainerImpl mod : mods) {
 			try {
-				for (String in : mod.getInfo().getOldInitializers()) {
-					String adapter = mod.getInfo().getOldStyleLanguageAdapter();
-					entrypointStorage.addDeprecated(mod, adapter, in);
-				}
-
-				for (String key : mod.getInfo().getEntrypointKeys()) {
-					for (EntrypointMetadata in : mod.getInfo().getEntrypoints(key)) {
+				for (String key : mod.getMetadata().getEntrypointKeys()) {
+					for (EntrypointMetadata in : mod.getMetadata().getEntrypoints(key)) {
 						entrypointStorage.add(mod, key, in, adapterMap);
 					}
 				}
 			} catch (Exception e) {
-				throw new RuntimeException(String.format("Failed to setup mod %s (%s)", mod.getInfo().getName(), mod.getOrigin()), e);
+				throw new RuntimeException(String.format("Failed to setup mod %s (%s)", mod.getMetadata().getName(), mod.getOrigin()), e);
 			}
 		}
 	}
@@ -610,7 +587,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		return getGameProvider().getLaunchArguments(sanitize);
 	}
 
-	@Override
 	protected Path getModsDirectory0() {
 		String directory = System.getProperty(SystemProperties.MODS_FOLDER);
 

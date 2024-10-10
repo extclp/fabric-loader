@@ -16,12 +16,10 @@
 
 package net.fabricmc.loader.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,8 +35,7 @@ import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
-@SuppressWarnings("deprecation")
-public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
+public class ModContainerImpl implements ModContainer {
 	private final LoaderModMetadata info;
 	private final ModOrigin origin;
 	private final List<Path> codeSourcePaths;
@@ -73,24 +70,9 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 		return origin;
 	}
 
-	@Override
 	public List<Path> getCodeSourcePaths() {
 		return codeSourcePaths;
 	}
-
-	@Override
-	public Path getRootPath() {
-		List<Path> paths = getRootPaths();
-
-		if (paths.size() != 1 && !warnedMultiPath) {
-			if (!FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment()) warnedMultiPath = true;
-			Log.warn(LogCategory.GENERAL, "getRootPath access for %s with multiple paths, returning only one which may incur unexpected behavior!", this);
-		}
-
-		return paths.get(0);
-	}
-
-	private static boolean warnedMultiPath = false;
 
 	@Override
 	public List<Path> getRootPaths() {
@@ -167,22 +149,6 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 	}
 
 	@Override
-	public Path getPath(String file) {
-		Optional<Path> res = findPath(file);
-		if (res.isPresent()) return res.get();
-
-		List<Path> roots = this.roots;
-
-		if (!roots.isEmpty()) {
-			Path root = roots.get(0);
-
-			return root.resolve(file.replace("/", root.getFileSystem().getSeparator()));
-		} else {
-			return Paths.get(".").resolve("missing_ae236f4970ce").resolve(file.replace('/', File.separatorChar)); // missing dummy path
-		}
-	}
-
-	@Override
 	public Optional<ModContainer> getContainingMod() {
 		return parentModId != null ? FabricLoaderImpl.INSTANCE.getModContainer(parentModId) : Optional.empty();
 	}
@@ -194,17 +160,10 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 		List<ModContainer> ret = new ArrayList<>(childModIds.size());
 
 		for (String id : childModIds) {
-			ModContainer mod = FabricLoaderImpl.INSTANCE.getModContainer(id).orElse(null);
-			if (mod != null) ret.add(mod);
+			FabricLoaderImpl.INSTANCE.getModContainer(id).ifPresent(ret::add);
 		}
 
 		return ret;
-	}
-
-	@Deprecated
-	@Override
-	public LoaderModMetadata getInfo() {
-		return info;
 	}
 
 	@Override

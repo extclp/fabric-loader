@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.api;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -188,28 +187,11 @@ public interface FabricLoader {
 	EnvType getEnvironmentType();
 
 	/**
-	 * Get the current game instance. Can represent a game client or
-	 * server object. As such, the exact return is dependent on the
-	 * current environment type.
-	 *
-	 * <p>The game instance may not always be available depending on the game version and {@link EnvType environment}.
-	 *
-	 * @return A client or server instance object
-	 * @deprecated This method is experimental and its use is discouraged.
-	 */
-	/* @Nullable */
-	@Deprecated
-	Object getGameInstance();
-
-	/**
 	 * Get the current game working directory.
 	 *
 	 * @return the working directory
 	 */
 	Path getGameDir();
-
-	@Deprecated
-	File getGameDirectory();
 
 	/**
 	 * Get the current directory for game configuration files.
@@ -217,9 +199,6 @@ public interface FabricLoader {
 	 * @return the configuration directory
 	 */
 	Path getConfigDir();
-
-	@Deprecated
-	File getConfigDirectory();
 
 	/**
 	 * Gets the command line arguments used to launch the game.

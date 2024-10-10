@@ -147,7 +147,7 @@ public final class Log {
 			exc = null;
 		} else {
 			if (CHECK_FOR_BRACKETS) {
-				if (format.indexOf("{}") != -1) throw new IllegalArgumentException("log message containing {}: "+format);
+				if (format.contains("{}")) throw new IllegalArgumentException("log message containing {}: "+format);
 			}
 
 			Object lastArg = args[args.length - 1];
