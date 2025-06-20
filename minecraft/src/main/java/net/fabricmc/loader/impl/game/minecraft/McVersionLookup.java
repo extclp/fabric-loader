@@ -56,7 +56,7 @@ public final class McVersionLookup {
 			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // long alpha/beta names: Alpha v1.2.3_45
 			+ "Inf?dev (0\\.31 )?\\d+(-\\d+)?|" // long indev/infdev names: Infdev 12345678-9
 			+ "(rd|inf?)-\\d+|" // early rd-123, in-20100223, inf-123
-			+ "1\\.RV-Pre1|3D Shareware v1\\.34|23w13a_or_b|24w14potato|" // odd exceptions
+			+ "1\\.RV-Pre1|3D Shareware v1\\.34|23w13a_or_b|24w14potato|25w14craftmine|" // odd exceptions
 			+ "(.*[Ee]xperimental [Ss]napshot )(\\d+)" // Experimental versions.
 			);
 	private static final Pattern RELEASE_PATTERN = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
@@ -287,7 +287,9 @@ public final class McVersionLookup {
 			int year = Integer.parseInt(matcher.group(1));
 			int week = Integer.parseInt(matcher.group(2));
 
-			if (year == 25 && week >= 2 || year > 25) {
+			if (year == 25 && week >= 15 || year > 25) {
+				return "1.21.6";
+			} else if (year == 25 && week >= 2 && week <= 10) {
 				return "1.21.5";
 			} else if (year == 24 && week >= 44) {
 				return "1.21.4";
@@ -610,6 +612,10 @@ public final class McVersionLookup {
 		case "24w14potato":
 			// Minecraft 24w14potato, forked from 24w12a
 			return "1.20.5-alpha.24.12.potato";
+
+		case "25w14craftmine":
+			// Minecraft 25w14craftmine, forked from 1.21.5
+			return "1.21.6-alpha.25.14.craftmine";
 
 		default:
 			return null; //Don't recognise the version
